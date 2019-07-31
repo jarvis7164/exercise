@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>系统设置</title>
+    <link rel="stylesheet" type="text/css" href="../../../assets/iview/iview-3.1.0/styles/iview.css" />
+    <script src="../../../assets/vue/vue-2.5.17.min.js"></script>
+    <script src="../../../assets/iview/iview-3.1.0/iview.min.js"></script>
+  <script src="../../../assets/axios/axios.js"></script>
+  <script src="../../../js/config.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <i-table :border="showBorder" :stripe="showStripe" :show-header="showHeader" :height="fixedHeader ? 300 : ''"
+            :size="tableSize" :data="apitable" :columns="apiColumns"></i-table>
+    </div>
+    <script type="text/javascript">
+        var vm = new Vue({
+            el: "#app",
+            data: function () {
+                return {
+                    apitable: [],
+                    api_pdt:[],
+                    showBorder: true,
+                    showStripe: true,
+                    showHeader: true,
+                    showIndex: true,
+                    showCheckbox: false,
+                    fixedHeader: false,
+                    tableSize: 'default'
+
+                }
+            },
+            computed: {
+                apiColumns() {
+                    let columns = [];
+                    if (this.showCheckbox) {
+                        columns.push({
+                            type: 'selection',
+                            width: 60,
+                            align: 'center'
+                        })
+                    }
+                    if (this.showIndex) {
+                        columns.push({
+                            type: 'index',
+                            width: 60,
+                            align: 'center'
+                        })
+                    }
+                    columns.push({
+                        title: 'API名称',
+                        key: 'api_name',
+                        sortable: true
+                    });
+                    columns.push({
+                        title: 'method',
+                        key: 'method'
+                    });
+                  console.log("length1:"+this.api_pdt.length)
+                  var filters_name1=[];
+                  for(var i = 0; i <this.api_pdt.length; i++){
+                    var filters_name0={
+                      label:this.api_pdt[i].pdt_name,
+                      value: this.api_pdt[i].pdt_name
+                    }
+                    for(var j=0;j<this.apitable.length;j++){
+               if(this.api_pdt[i].pdt_id===this.apitable[j].pdt_id){
+                 //this.apitable[j].push(this.api_pdt[i].pdt_name)
+                 console.log("this.apitable"+this.apitable)
+               }
+        }
+                    filters_name1.push(filters_name0);
+                  }
+                  console.log("file:"+JSON.stringify(filters_name1));
+
+                  columns.push({
+                    title: '产品名称',
+                    key: 'pdt_id',
+                    filters:filters_name1 ,
+                    filterMethod (value, row) {
+                      console.log(value)
+                      console.log(row.api_name)
+                      return row.pdt_id.indexOf(value) > -1
+                    }
+                  });
+                    columns.push({
+                    title: 'Action',
+                    key: 'action',
+                    render: (h, params) => {
+                      return h('div', [
+                        h('Button', {
+                          props: {
+                            type: 'primary',
+                            size: 'small'
+                          },
+                          style: {
+                            marginRight: '5px'
+                          },
+                          on: {
+                            click: () => {
+                              this.show(params.index)
+                            }
+                          }
+                        }, 'View'),
+                        h('Button', {
+                          props: {
+                            type: 'error',
+                            size: 'small'
+                          },
+                          on: {
+                            click: () => {
+                              this.remove(params.index)
+                            }
+                          }
+                        }, 'Delete')
+                      ])
+                    }
+                  });
+                    return columns;
+                }
+            },
+          mounted:function(){
+            axios.get(''+host+'/api/apiinfo/apilist')
+              .then(res => {
+                console.log(res)
+                this.apitable = res.data.message
+                console.log("123"+this.api_pdt)
+
+              })
+              .catch(function (error) {
+                console.log(error)
+              });
+            axios.get(''+host+'/api/product/getproductlist')
+              .then(res => {
+                console.log(res)
+                this.api_pdt = res.data.message
+                console.log(this.api_pdt[0].pdt_name)
+
+
+              })
+              .catch(function (error) {
+                console.log(error)
+              });
+          },
+        });
+    </script>
+</body>
+
+</html>
